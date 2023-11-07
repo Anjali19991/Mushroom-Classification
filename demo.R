@@ -1,4 +1,6 @@
-data <- read.csv("/Users/bbp29/OneDrive/Desktop/M2023/IDA/Project/mushrooms.csv")
+options(expressions = 500000)
+
+data <- read.csv("mushrooms.csv")
 
 # Target - class: e = edible; p = poisonous
 
@@ -38,13 +40,13 @@ setClass(
   "TreeNode",
   representation(
     Feature = "character",
-    Children = "list"
+    Children = "array"
   )
 )
 
 # Function to create a new tree node
 newTreeNode <- function(feature = character(0)) {
-  return(new("TreeNode", Feature = feature, Children = list()))
+  return(new("TreeNode", Feature = feature, Children = array()))
 }
 
 # Update the root initialization using the newTreeNode function
@@ -52,44 +54,57 @@ root <- newTreeNode()
 
 # Function to build decision tree
 build_decision_tree <- function(node, data, target) {
+  # current_target <- target[nrow(target)]
   # Stopping condition: All the data points have the same class
-  if (length(unique(data[[colnames(data)[target]]])) == 1) {
-    return(unique(data[[target]]))
+  if (length(unique(data[[current_target]])) == 1) {
+    return(unique(data[[current_target]]))
   }
-  
+
   # Stopping condition: No features left to split on
   if (ncol(data) == 1) {
     return(colnames(data))
   }
-  
+
   # Find the feature with the highest information gain
   columns <- colnames(data)
-  features <- columns[-which(columns == columns[target])]
-  information_gains <- sapply(features, calculate_information_gain, data = data, target = target)
+  features <- columns[-which(columns == target)]
+  information_gains <- sapply(
+    features,
+    calculate_information_gain,
+    data = data,
+    target = target
+  )
   best_feature <- features[which.max(information_gains)]
-  
+
   # Set the feature of the current node
   node@Feature <- best_feature
 
   # Split based on the best feature
   unique_values <- unique(data[[best_feature]])
+  print(unique_values)
   for (value in unique_values) {
     subset_data <- data[data[[best_feature]] == value, ]
     if (nrow(subset_data) == 0) {
       # If there are no data points, choose the majority class from the parent
-      majority_class <- colnames(sort(table(data[[target]], decreasing = TRUE))[1])
-      node@Children[[as.character(value)]] <- majority_class
+      majority_class <- colnames(sort(table(data[[target]], decreasing = TRUE)))[1]# nolint
+      node@Children <- as.array(append(node@Children, newTreeNode(majority_class))) # nolint
+      print(node@Children)
     } else {
       # Recursively build the tree
-      child_node <- newTreeNode()
-      node@Children[[as.character(value)]] <- child_node  # Initialize child node
+      child_node <- newTreeNode(value)
+      node@Children <- as.array(append(node@Children, child_node)) # Initialize child node # nolint
+      print(node@Children)
       build_decision_tree(child_node, subset_data, target)
     }
   }
 }
 
 # Build decision tree
-decision_tree <- build_decision_tree(root, data, target = 1)
+decision_tree <- build_decision_tree(
+  root,
+  data,
+  target = array(colnames(data)[1])
+)
 
 # Function to make prediction on new data
 make_prediciton <- function(tree, new_data) {
@@ -108,10 +123,28 @@ make_prediciton <- function(tree, new_data) {
 
 # Example predictions
 new_data_point <- data.frame(
-  cap.shape = "x", cap.surface = "y", cap.color = "w", bruises = "f", odor = "a", gill.attachment = "f",
-  gill.spacing = "w", gill.size = "b", gill.color = "g", stalk.shape = "e", stalk.root = "c", stalk.surface.above.ring = "s",
-  stalk.surface.below.ring = "s", stalk.color.above.ring = "w", stalk.color.below.ring = "w", viel.type = "p", viel.color = "w",
-  ring.number = "o", ring.type = "e", spore.print.color = "k", population = "n", habitat = "g"
+  cap.shape = "x",
+  cap.surface = "y",
+  cap.color = "w",
+  bruises = "f",
+  odor = "a",
+  gill.attachment = "f",
+  gill.spacing = "w",
+  gill.size = "b",
+  gill.color = "g",
+  stalk.shape = "e",
+  stalk.root = "c",
+  stalk.surface.above.ring = "s",
+  stalk.surface.below.ring = "s",
+  stalk.color.above.ring = "w",
+  stalk.color.below.ring = "w",
+  viel.type = "p",
+  viel.color = "w",
+  ring.number = "o",
+  ring.type = "e", 
+  spore.print.color = "k",
+  population = "n",
+  habitat = "g"
 )
 prediction <- make_prediciton(decision_tree, new_data_point)
 cat("Predicted Class: ", prediction)
