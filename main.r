@@ -51,7 +51,7 @@
 # -----------------Loading required libraries-----------------------------------
 #-------------------------------------------------------------------------------
 
-install.packages("ggplot2")
+# install.packages("ggplot2")
 
 library(dplyr)
 library(data.table)
@@ -65,7 +65,7 @@ library(ggplot2)
 #------------------ Loading the data set----------------------------------------
 #-------------------------------------------------------------------------------
 
-data_set <- read.csv('mushrooms.csv')
+data_set <- read.csv("mushrooms.csv")
 
 
 #-------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ data_set <- read.csv('mushrooms.csv')
 # shows the first 5 rows of our data set
 #---------------------------------------
 
-head(data_set,5)
+head(data_set, 5)
 
 # Finding the dimension of our data set
 #--------------------------------------
@@ -271,26 +271,26 @@ ggplot(df_grp_population_long, aes(x = population, y = Frequency, fill = Class))
 #-------------------------------------------------------------------
 
 
-columns <- names(data_set)
+# columns <- names(data_set)
 
-for (i in 1:length(columns)) {
-  for (j in 1:length(columns)) {
-    if (is.factor(data_set[[columns[i]]]) && is.factor(data_set[[columns[j]]])) {
-      if (i != j) {  # Exclude cases when i equals j
-        cross_table <- table(data_set[[columns[i]]], data_set[[columns[j]]])
-        if (sum(cross_table) > 0) {  # Ensure there is data in the contingency table
-          if (sum(dim(cross_table) > 1) == 2) {  # Check if the table has at least two dimensions
-            result <- chisq.test(cross_table)
-            print(paste("Chi-square test between", columns[i], "and", columns[j], ":", "p-value =", result$p.value))
-          } else {
-            print(paste("No variability in the contingency table:", columns[i], "and", columns[j]))
-          }
-        } else {
-          print(paste("No data in the contingency table:", columns[i], "and", columns[j]))
-        }
-      }
-    }
-  }
-}
+# for (i in 1:length(columns)) {
+#   for (j in 1:length(columns)) {
+#     if (is.factor(data_set[[columns[i]]]) && is.factor(data_set[[columns[j]]])) {
+#       if (i != j) {  # Exclude cases when i equals j
+#         cross_table <- table(data_set[[columns[i]]], data_set[[columns[j]]])
+#         if (sum(cross_table) > 0) {  # Ensure there is data in the contingency table
+#           if (sum(dim(cross_table) > 1) == 2) {  # Check if the table has at least two dimensions
+#             result <- chisq.test(cross_table)
+#             print(paste("Chi-square test between", columns[i], "and", columns[j], ":", "p-value =", result$p.value))
+#           } else {
+#             print(paste("No variability in the contingency table:", columns[i], "and", columns[j]))
+#           }
+#         } else {
+#           print(paste("No data in the contingency table:", columns[i], "and", columns[j]))
+#         }
+#       }
+#     }
+#   }
+# }
 
 
