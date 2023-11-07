@@ -1,5 +1,4 @@
-# Decision Tree Classifier using C4.5 Algorithm
-data <- read.csv("mushrooms.csv")
+data <- read.csv("/Users/bbp29/OneDrive/Desktop/M2023/IDA/Project/mushrooms.csv")
 
 # Target - class: e = edible; p = poisonous
 
@@ -30,9 +29,26 @@ calculate_information_gain <- function(data, feature, target) {
 }
 
 # Initialize the root of the decision tree
-root <- list()
-root[["Feature"]] <- NULL  # Initially, the root has no feature
-root[["Children"]] <- list()
+# root <- list()
+# root[["Feature"]] <- NULL  # Initially, the root has no feature
+# root[["Children"]] <- list()
+
+# Define an S4 class for tree nodes
+setClass(
+  "TreeNode",
+  representation(
+    Feature = "character",
+    Children = "list"
+  )
+)
+
+# Function to create a new tree node
+newTreeNode <- function(feature = character(0)) {
+  return(new("TreeNode", Feature = feature, Children = list()))
+}
+
+# Update the root initialization using the newTreeNode function
+root <- newTreeNode()
 
 # Function to build decision tree
 build_decision_tree <- function(node, data, target) {
@@ -43,7 +59,7 @@ build_decision_tree <- function(node, data, target) {
   
   # Stopping condition: No features left to split on
   if (ncol(data) == 1) {
-    return(names(data))
+    return(colnames(data))
   }
   
   # Find the feature with the highest information gain
@@ -53,7 +69,7 @@ build_decision_tree <- function(node, data, target) {
   best_feature <- features[which.max(information_gains)]
   
   # Set the feature of the current node
-  node[["Feature"]] <- best_feature
+  node@Feature <- best_feature
 
   # Split based on the best feature
   unique_values <- unique(data[[best_feature]])
@@ -62,11 +78,12 @@ build_decision_tree <- function(node, data, target) {
     if (nrow(subset_data) == 0) {
       # If there are no data points, choose the majority class from the parent
       majority_class <- colnames(sort(table(data[[target]], decreasing = TRUE))[1])
-      node[["Children"]][[as.character(value)]] <- majority_class
+      node@Children[[as.character(value)]] <- majority_class
     } else {
       # Recursively build the tree
-      node[["Children"]][[as.character(value)]] <- list(Feature = NULL, Children = list())  # Initialize child node
-      build_decision_tree(node[["Children"]][[as.character(value)]], subset_data, target)
+      child_node <- newTreeNode()
+      node@Children[[as.character(value)]] <- child_node  # Initialize child node
+      build_decision_tree(child_node, subset_data, target)
     }
   }
 }
@@ -76,25 +93,25 @@ decision_tree <- build_decision_tree(root, data, target = 1)
 
 # Function to make prediction on new data
 make_prediciton <- function(tree, new_data) {
-  while (!is.character(tree[["Feature"]])) {
-    feature <- tree[["Feature"]]
+  while (!is.character(tree@Feature)) {
+    feature <- tree@Feature
     feature_value <- as.character(new_data[[feature]])
 
-    if (!feature_value %in% colnames(tree[["Children"]])) {
+    if (!feature_value %in% colnames(tree@Children)) {
       # If feature value is not in the tree, return the majority class
       majority_class <- colnames(sort(table(data$class, decreasing = TRUE))[1])
       return(majority_class)
     }
-    tree <- tree[["Children"]][[feature_value]]
+    tree <- tree@Children[[feature_value]]
   }
 }
 
 # Example predictions
-#new_data_point <- data.frame(
-#  cap.shape = "x", cap.surface = "y", cap.color = "w", bruises = "f", odor = "a", gill.attachment = "f",
-#  gill.spacing = "w", gill.size = "b", gill.color = "g", stalk.shape = "e", stalk.root = "c", stalk.surface.above.ring = "s",
-#  stalk.surface.below.ring = "s", stalk.color.above.ring = "w", stalk.color.below.ring = "w", viel.type = "p", viel.color = "w",
-#  ring.number = "o", ring.type = "e", spore.print.color = "k", population = "n", habitat = "g"
-#)
-#prediction <- make_prediciton(decision_tree, new_data_point)
-#cat("Predicted Class: ", prediction)
+new_data_point <- data.frame(
+  cap.shape = "x", cap.surface = "y", cap.color = "w", bruises = "f", odor = "a", gill.attachment = "f",
+  gill.spacing = "w", gill.size = "b", gill.color = "g", stalk.shape = "e", stalk.root = "c", stalk.surface.above.ring = "s",
+  stalk.surface.below.ring = "s", stalk.color.above.ring = "w", stalk.color.below.ring = "w", viel.type = "p", viel.color = "w",
+  ring.number = "o", ring.type = "e", spore.print.color = "k", population = "n", habitat = "g"
+)
+prediction <- make_prediciton(decision_tree, new_data_point)
+cat("Predicted Class: ", prediction)
