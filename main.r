@@ -1,13 +1,12 @@
- 
-# GROUP - 15 
+# GROUP - 15
 # IDA PROJECT
 # MUSHROOM CLASSIFICATION
 
 
-#================================== Here is a brief description about our data-set =================================#
+# ================================== Here is a brief description about our data-set =================================#
 
 
-# For the mushroom data-set, it's essential to understand the meaning and context of each column. 
+# For the mushroom data-set, it's essential to understand the meaning and context of each column.
 # Given the potential risk associated with mushroom consumption (poisonous vs. edible), understanding the features is crucial for analysis.
 # Here's a generalized description of what each column might represent based on typical mushroom data-sets:
 
@@ -36,16 +35,16 @@
 # 21. Spore Print Color: Represents the color of the spore print.
 # 22. Population: Describes the population of the mushrooms (abundant, clustered, numerous, scattered, several, solitary).
 # 23. Habitat: Specifies the habitat where the mushrooms are found (e.g., grasses, leaves, meadows, paths, urban, waste, woods).
-# Each column in the data-set provides specific attributes or characteristics of the mushrooms that aid in their classification as either edible or poisonous. 
+# Each column in the data-set provides specific attributes or characteristics of the mushrooms that aid in their classification as either edible or poisonous.
 # Understanding these features helps in analyzing and building a model to predict the mushroom's edibility based on these attributes.
 
-#................................................................................................................
+# ................................................................................................................
 # Hence our goal is to build a model which determines whether a mushroom is poisonous or not based on its features
-#................................................................................................................
+# ................................................................................................................
 
 
 
-#============================================================================================================================================================
+# ============================================================================================================================================================
 
 #-------------------------------------------------------------------------------
 # -----------------Loading required libraries-----------------------------------
@@ -81,13 +80,13 @@ head(data_set, 5)
 # Finding the dimension of our data set
 #--------------------------------------
 
-print('Dimension of the dataset is :')
+print("Dimension of the dataset is :")
 print(dim(data_set))
 
-print(paste('Number of columns : ',ncol(data_set))) # from here we can conclude that there are in total 23 attributes.
-print(paste('Number of rows : ',nrow(data_set))) # We have 8124 records 
+print(paste("Number of columns : ", ncol(data_set))) # from here we can conclude that there are in total 23 attributes.
+print(paste("Number of rows : ", nrow(data_set))) # We have 8124 records
 
-#Finding the structure of our data-set (column names, types, etc.):
+# Finding the structure of our data-set (column names, types, etc.):
 #-----------------------------------------------------------------
 
 str(data_set)
@@ -104,14 +103,14 @@ str(data_set)
 # Check if data frame is NULL
 
 
-print(paste('Null values in the data-set : ',is.null(data_set)))
+print(paste("Null values in the data-set : ", is.null(data_set)))
 
 # Since the result is false , we can say that there are no null row-values in the data-set.
 
 # Check for missing values
 #--------------------------
 
-print(paste('Missind data : ',sum(is.na(data_set))))
+print(paste("Missind data : ", sum(is.na(data_set))))
 
 # Since the count for NA's rows is 0 , we can conclude that our data-set has no row-missing values.
 
@@ -120,9 +119,9 @@ print(paste('Missind data : ',sum(is.na(data_set))))
 # Looking for duplicate rows
 #------------------------------
 
-#count number of duplicate rows
+# count number of duplicate rows
 
-print(paste('Count for duplicate rows : ',nrow(data_set[duplicated(data_set), ])))
+print(paste("Count for duplicate rows : ", nrow(data_set[duplicated(data_set), ])))
 
 # Since the outcome is zero we can conclude that there are no duplicate rows in our data-set
 
@@ -131,7 +130,7 @@ print(paste('Count for duplicate rows : ',nrow(data_set[duplicated(data_set), ])
 
 for (i in 1:23) {
   unique_values <- unique(data_set[[i]])
-  print(paste('Unique values in column ', i, ' are: '))
+  print(paste("Unique values in column ", i, " are: "))
   print(unique_values)
 }
 
@@ -139,7 +138,7 @@ for (i in 1:23) {
 # Which are identified by ? int the cells.
 # Let us now try to find the count of such values.
 
-count_question_mark <- sum(data_set$stalk.root == '?')
+count_question_mark <- sum(data_set$stalk.root == "?")
 print(count_question_mark)
 
 # We found that the count of ? in stalk-root column is 2480 which is pretty high compared to total number of rows in the data-set.
@@ -151,35 +150,37 @@ print(count_question_mark)
 #---------------------- Exploring Our Data-set ---------------------------------
 #-------------------------------------------------------------------------------
 
-#Finding number of unique values in each columnes
+# Finding number of unique values in each columnes
 #------------------------------------------------
 
 object_columns <- sapply(data_set, is.character)
 result <- sapply(data_set[object_columns], function(x) length(unique(x)))
 print(result)
 
-#Dropping columns with very low/high cardinality
+# Dropping columns with very low/high cardinality
 #----------------------------------------------------
 
 dim(data_set)
 
-columns_to_drop <- c('bruises', 'gill-attachment', 'gill-spacing', 'gill-size', 'stalk-shape', 'veil-type')
+columns_to_drop <- c("bruises", "gill-attachment", "gill-spacing", "gill-size", "stalk-shape", "veil-type")
 
-data_set <- data_set[,!(names(data_set) %in% columns_to_drop)]
+data_set <- data_set[, !(names(data_set) %in% columns_to_drop)]
 data_set <- data_set %>% select(-one_of(columns_to_drop))
 
 dim(data_set)
 
-  
+
 # Count for edible vs poisonous mushrooms in our data-set
 #--------------------------------------------------------
 
 
-A <- c(sum(data_set$class == 'e'),sum(data_set$class == 'p'))
-B <- c("Edible", "Poisonous") 
- 
-barplot(A, names.arg = B, xlab ="Type of Mushroom",  
-        ylab ="Count",main ="Count : Edible vs Poisonous Mushroom", col = 'pink') 
+A <- c(sum(data_set$class == "e"), sum(data_set$class == "p"))
+B <- c("Edible", "Poisonous")
+
+barplot(A,
+  names.arg = B, xlab = "Type of Mushroom",
+  ylab = "Count", main = "Count : Edible vs Poisonous Mushroom", col = "pink"
+)
 
 # Frequency of each attribute
 #-----------------------------
@@ -188,14 +189,14 @@ plot_unique_frequency <- function(data) {
   for (col in names(data)) {
     if (class(data[[col]]) %in% c("character", "factor") && length(unique(data[[col]])) > 0) {
       unique_counts <- as.data.frame(table(data[[col]]))
-      
+
       # Plotting bar plot for each attribute
       p <- ggplot(unique_counts, aes(x = Var1, y = Freq)) +
         geom_bar(stat = "identity", fill = "skyblue") +
         labs(title = paste("Frequency of Unique Values for", col), x = col, y = "Frequency") +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
-      
+
       print(p)
     }
   }
@@ -204,23 +205,26 @@ plot_unique_frequency <- function(data) {
 plot_unique_frequency(data_set)
 
 
-#Our data_set is moderately balanced
+# Our data_set is moderately balanced
 
 # Lets us try finding the major habitats of poisonous mushrooms and edible mushrooms
 #-----------------------------------------------------------------------------------
 
 df_grp_region <- data_set %>%
   group_by(habitat) %>%
-  summarise(poisonous_frequency = sum(class == 'p'),
-            edible_frequency = sum(class == 'e'),
-            .groups = 'drop')
+  summarise(
+    poisonous_frequency = sum(class == "p"),
+    edible_frequency = sum(class == "e"),
+    .groups = "drop"
+  )
 
 View(df_grp_region)
 print(df_grp_region)
 
-df_grp_region_long <- tidyr::pivot_longer(df_grp_region, 
-                                          cols = c(poisonous_frequency, edible_frequency), 
-                                          names_to = "Class", values_to = "Frequency")
+df_grp_region_long <- tidyr::pivot_longer(df_grp_region,
+  cols = c(poisonous_frequency, edible_frequency),
+  names_to = "Class", values_to = "Frequency"
+)
 
 df_grp_region_long
 
@@ -228,7 +232,7 @@ df_grp_region_long
 ggplot(df_grp_region_long, aes(x = habitat, y = Frequency, fill = Class)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(x = "Habitat", y = "Frequency", fill = "Class") +
-  scale_fill_manual(values = c("green", "red"), labels = c("Edible","Poisonous")) +
+  scale_fill_manual(values = c("green", "red"), labels = c("Edible", "Poisonous")) +
   ggtitle("Habitat Distribution: Edible Vs Poisonous") +
   theme_minimal()
 
@@ -240,28 +244,31 @@ ggplot(df_grp_region_long, aes(x = habitat, y = Frequency, fill = Class)) +
 
 
 
-# Lets try finding out the populations these mushrooms usually fall in 
+# Lets try finding out the populations these mushrooms usually fall in
 #----------------------------------------------------------------------
 
 
 df_grp_population <- data_set %>%
   group_by(population) %>%
-  summarise(poisonous_frequency = sum(class == 'p'),
-            edible_frequency = sum(class == 'e'),
-            .groups = 'drop')
+  summarise(
+    poisonous_frequency = sum(class == "p"),
+    edible_frequency = sum(class == "e"),
+    .groups = "drop"
+  )
 
 View(df_grp_population)
 print(df_grp_population)
 
-df_grp_population_long <- tidyr::pivot_longer(df_grp_population, 
-                                          cols = c(poisonous_frequency, edible_frequency), 
-                                          names_to = "Class", values_to = "Frequency")
+df_grp_population_long <- tidyr::pivot_longer(df_grp_population,
+  cols = c(poisonous_frequency, edible_frequency),
+  names_to = "Class", values_to = "Frequency"
+)
 
 
 ggplot(df_grp_population_long, aes(x = population, y = Frequency, fill = Class)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(x = "population", y = "Frequency", fill = "Class") +
-  scale_fill_manual(values = c("green", "red"), labels = c("Edible","Poisonous")) +
+  scale_fill_manual(values = c("green", "red"), labels = c("Edible", "Poisonous")) +
   ggtitle("Population Distribution: Edible Vs Poisonous") +
   theme_minimal()
 
@@ -292,5 +299,3 @@ ggplot(df_grp_population_long, aes(x = population, y = Frequency, fill = Class))
 #     }
 #   }
 # }
-
-
