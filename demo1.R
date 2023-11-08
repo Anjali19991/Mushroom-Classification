@@ -1,6 +1,6 @@
 options(expressions = 500000)
 
-library(data.tree)
+# library(data.tree)
 data <- read.csv("mushrooms.csv")
 
 # Target - class: e = edible; p = poisonous
@@ -37,64 +37,61 @@ calculate_information_gain <- function(data, feature, target) {
 # root[["Children"]] <- list()
 
 
-# Function to create a new tree node
-newTreeNode <- function(feature = character(0)) {
-  return(Node$new(feature))
-}
-
-
-
 # Function to build decision tree
-build_decision_tree <- function(node, data, target) {
-  # current_target <- target[nrow(target)]
-  # Stopping condition: All the data points have the same class
-  if (length(unique(data[[target]])) == 1) {
-    return(unique(data[[target]]))
-  }
+build_decision_tree <- function(root, data, target) {
+  stack <- list()
+  stack <- c(stack, list(list(node = root, data = data, target = target)))
 
-  # Stopping condition: No features left to split on
-  if (ncol(data) == 1) {
-    return(colnames(data))
-  }
+  while (length(stack) > 0) {
+    print(root)
+    current <- stack[[length(stack)]]
+    node <- current$node
+    data <- current$data
+    target <- current$target
+    stack <- stack[-length(stack)]  # Pop the current item
 
-  # Find the feature with the highest information gain
-  columns <- colnames(data)
-  features <- columns[-which(columns == target)]
-  information_gains <- sapply(
-    features,
-    calculate_information_gain,
-    data = data,
-    target = target
-  )
-  best_feature <- features[which.max(information_gains)]
-
-  # Split based on the best feature
-  unique_values <- unique(data[[best_feature]])
-  for (value in unique_values) {
-    subset_data <- data[data[[best_feature]] == value, ]
-    if (nrow(subset_data) == 0) {
-      # If there are no data points, choose the majority class from the parent
-      majority_class <- colnames(sort(table(data[[target]], decreasing = TRUE)))[1] # nolint
-      node$AddChild(majority_class) # nolint
+    if (length(unique(data[[target]])) == 1) {
+      # All data points have the same class
+      node[["Leaf"]] <- unique(data[[target]])
+      next
+    } else if (ncol(data) == 1) {
+      # No features left to split on
+      node[["Leaf"]] <- colnames(data)
+      break
     } else {
-      # Recursively build the tree
-      child <- node$AddChild(value) # Initialize child node # nolint
-      build_decision_tree(child, subset_data, target)
+      columns <- colnames(data)
+      features <- columns[columns != target]
+      information_gains <- sapply(
+        features,
+        calculate_information_gain,
+        data = data,
+        target = target
+      )
+      best_feature <- features[which.max(information_gains)]
+
+      unique_values <- unique(data[[best_feature]])
+      for (value in unique_values) {
+        subset_data <- data[data[[best_feature]] == value, ]
+        if (nrow(subset_data) == 0) {
+          majority_class <- colnames(sort(table(data[[target]], decreasing = TRUE)))[1]
+          node[["Children"]][[as.character(value)]] <- majority_class
+        } else {
+          child <- list()
+          child[["Feature"]] <- best_feature
+          child[["Children"]] <- list()
+          node[["Children"]][[as.character(value)]] <- child
+          stack <- c(stack, list(list(node = child, data = subset_data, target = target)))
+        }
+      }
     }
   }
 }
 
-# Update the root initialization using the newTreeNode function
+decision_tree <- list()
+decision_tree[["Children"]] <- list()
 target <- colnames(data)[1]
-root <- newTreeNode(target)
+build_decision_tree(decision_tree, data, target)
 
-
-# Build decision tree
-decision_tree <- build_decision_tree(
-  root,
-  data,
-  target = target
-)
 
 # Function to make prediction on new data
 make_prediciton <- function(tree, new_data) {
