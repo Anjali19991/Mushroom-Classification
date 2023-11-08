@@ -1,5 +1,6 @@
-options(expressions = 500000)
+# options(expressions = 500000)
 
+library(data.tree)
 data <- read.csv("mushrooms.csv")
 
 # Target - class: e = edible; p = poisonous
@@ -35,22 +36,13 @@ calculate_information_gain <- function(data, feature, target) {
 # root[["Feature"]] <- NULL  # Initially, the root has no feature
 # root[["Children"]] <- list()
 
-# Define an S4 class for tree nodes
-setClass(
-  "TreeNode",
-  representation(
-    Feature = "character",
-    Children = "array"
-  )
-)
 
 # Function to create a new tree node
 newTreeNode <- function(feature = character(0)) {
-  return(new("TreeNode", Feature = feature, Children = array()))
+  return(Node$new(feature))
 }
 
-# Update the root initialization using the newTreeNode function
-root <- newTreeNode()
+
 
 # Function to build decision tree
 build_decision_tree <- function(node, data, target) {
@@ -87,23 +79,24 @@ build_decision_tree <- function(node, data, target) {
     if (nrow(subset_data) == 0) {
       # If there are no data points, choose the majority class from the parent
       majority_class <- colnames(sort(table(data[[target]], decreasing = TRUE)))[1]# nolint
-      node@Children <- as.array(append(node@Children, newTreeNode(majority_class))) # nolint
-      print(node@Children)
+      node$AddChild(majority_class) # nolint
     } else {
       # Recursively build the tree
-      child_node <- newTreeNode(value)
-      node@Children <- as.array(append(node@Children, child_node)) # Initialize child node # nolint
-      print(node@Children)
-      build_decision_tree(child_node, subset_data, target)
+      child <- node$AddChild(value) # Initialize child node # nolint
+      build_decision_tree(child, subset_data, target)
     }
   }
 }
+
+# Update the root initialization using the newTreeNode function
+root <- newTreeNode(NULL)
+
 
 # Build decision tree
 decision_tree <- build_decision_tree(
   root,
   data,
-  target = array(colnames(data)[1])
+  target = data$class
 )
 
 # Function to make prediction on new data
