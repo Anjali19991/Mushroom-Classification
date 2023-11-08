@@ -9,7 +9,7 @@ data <- read.csv("mushrooms.csv")
 calculate_entropy <- function(target) {
   # Non-zero probability that an arbitrary tuple in D belongs to a particular class
   probability <- table(target) / length(target)
-
+  
   entropy <- -sum(probability * log2(probability))
   return(entropy)
 }
@@ -20,13 +20,13 @@ calculate_information_gain <- function(data, feature, target) {
   total_entropy <- calculate_entropy(data[[target]])
   unique_values <- unique(data[[feature]])
   weighted_entropy <- 0
-
+  
   # Calculate weighted average of entropies for different values of the feature
   for (value in unique_values) {
     subset_data <- data[data[[feature]] == value, ]
     weighted_entropy <- weighted_entropy + (nrow(subset_data) / nrow(data))
   }
-
+  
   information_gain <- total_entropy - weighted_entropy
   return(information_gain)
 }
@@ -48,15 +48,15 @@ newTreeNode <- function(feature = character(0)) {
 build_decision_tree <- function(node, data, target) {
   # current_target <- target[nrow(target)]
   # Stopping condition: All the data points have the same class
-  if (length(unique(data[[current_target]])) == 1) {
-    return(unique(data[[current_target]]))
+  if (length(unique(data[[target]])) == 1) {
+    return(unique(data[[target]]))
   }
-
+  
   # Stopping condition: No features left to split on
   if (ncol(data) == 1) {
     return(colnames(data))
   }
-
+  
   # Find the feature with the highest information gain
   columns <- colnames(data)
   features <- columns[-which(columns == target)]
@@ -67,10 +67,7 @@ build_decision_tree <- function(node, data, target) {
     target = target
   )
   best_feature <- features[which.max(information_gains)]
-
-  # Set the feature of the current node
-  node@Feature <- best_feature
-
+  
   # Split based on the best feature
   unique_values <- unique(data[[best_feature]])
   print(unique_values)
@@ -89,7 +86,7 @@ build_decision_tree <- function(node, data, target) {
 }
 
 # Update the root initialization using the newTreeNode function
-root <- newTreeNode(NULL)
+root <- newTreeNode(colnames(data)[1])
 
 
 # Build decision tree
@@ -104,7 +101,7 @@ make_prediciton <- function(tree, new_data) {
   while (!is.character(tree@Feature)) {
     feature <- tree@Feature
     feature_value <- as.character(new_data[[feature]])
-
+    
     if (!feature_value %in% colnames(tree@Children)) {
       # If feature value is not in the tree, return the majority class
       majority_class <- colnames(sort(table(data$class, decreasing = TRUE))[1])
