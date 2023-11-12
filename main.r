@@ -64,7 +64,7 @@ library(ggplot2)
 #------------------ Loading the data set----------------------------------------
 #-------------------------------------------------------------------------------
 
-data_set <- read.csv("mushrooms.csv")
+data <- read.csv("mushrooms.csv")
 
 
 #-------------------------------------------------------------------------------
@@ -75,21 +75,21 @@ data_set <- read.csv("mushrooms.csv")
 # shows the first 5 rows of our data set
 #---------------------------------------
 
-head(data_set, 5)
+head(data, 5)
 
 # Finding the dimension of our data set
 #--------------------------------------
 
 print("Dimension of the dataset is :")
-print(dim(data_set))
+print(dim(data))
 
-print(paste("Number of columns : ", ncol(data_set))) # from here we can conclude that there are in total 23 attributes.
-print(paste("Number of rows : ", nrow(data_set))) # We have 8124 records
+print(paste("Number of columns : ", ncol(data))) # from here we can conclude that there are in total 23 attributes.
+print(paste("Number of rows : ", nrow(data))) # We have 8124 records
 
 # Finding the structure of our data-set (column names, types, etc.):
 #-----------------------------------------------------------------
 
-str(data_set)
+str(data)
 # From here we can conclude that all our attributes have character data .
 
 #-------------------------------------------------------------------------------
@@ -103,14 +103,14 @@ str(data_set)
 # Check if data frame is NULL
 
 
-print(paste("Null values in the data-set : ", is.null(data_set)))
+print(paste("Null values in the data-set : ", is.null(data)))
 
 # Since the result is false , we can say that there are no null row-values in the data-set.
 
 # Check for missing values
 #--------------------------
 
-print(paste("Missind data : ", sum(is.na(data_set))))
+print(paste("Missind data : ", sum(is.na(data))))
 
 # Since the count for NA's rows is 0 , we can conclude that our data-set has no row-missing values.
 
@@ -121,7 +121,7 @@ print(paste("Missind data : ", sum(is.na(data_set))))
 
 # count number of duplicate rows
 
-print(paste("Count for duplicate rows : ", nrow(data_set[duplicated(data_set), ])))
+print(paste("Count for duplicate rows : ", nrow(data[duplicated(data), ])))
 
 # Since the outcome is zero we can conclude that there are no duplicate rows in our data-set
 
@@ -129,7 +129,7 @@ print(paste("Count for duplicate rows : ", nrow(data_set[duplicated(data_set), ]
 #------------------------------------------------------------------------
 
 for (i in 1:23) {
-  unique_values <- unique(data_set[[i]])
+  unique_values <- unique(data[[i]])
   print(paste("Unique values in column ", i, " are: "))
   print(unique_values)
 }
@@ -138,7 +138,7 @@ for (i in 1:23) {
 # Which are identified by ? int the cells.
 # Let us now try to find the count of such values.
 
-count_question_mark <- sum(data_set$stalk.root == "?")
+count_question_mark <- sum(data$stalk.root == "?")
 print(count_question_mark)
 
 # We found that the count of ? in stalk-root column is 2480 which is pretty high compared to total number of rows in the data-set.
@@ -153,28 +153,40 @@ print(count_question_mark)
 # Finding number of unique values in each columnes
 #------------------------------------------------
 
-object_columns <- sapply(data_set, is.character)
-result <- sapply(data_set[object_columns], function(x) length(unique(x)))
+object_columns <- sapply(data, is.character)
+result <- sapply(data[object_columns], function(x) length(unique(x)))
 print(result)
 
 # Dropping columns with very low/high cardinality
 #----------------------------------------------------
 
-dim(data_set)
+dim(data)
 
-columns_to_drop <- c("bruises", "gill-attachment", "gill-spacing", "gill-size", "stalk-shape", "veil-type")
+columns_to_drop <- c(
+  "bruises",
+  "gill.attachment",
+  "gill.spacing",
+  "gill.size",
+  "stalk.shape",
+  "veil.type",
+  "cap.surface",
+  "stalk.surface.above.ring",
+  "stalk.surface.below.ring",
+  "veil.color",
+  "ring.number"
+)
 
-data_set <- data_set[, !(names(data_set) %in% columns_to_drop)]
-data_set <- data_set %>% select(-one_of(columns_to_drop))
+data <- data[, !(names(data) %in% columns_to_drop)]
+# data <- data %>% select(-one_of(columns_to_drop))
 
-dim(data_set)
+dim(data)
 
 
 # Count for edible vs poisonous mushrooms in our data-set
 #--------------------------------------------------------
 
 
-A <- c(sum(data_set$class == "e"), sum(data_set$class == "p"))
+A <- c(sum(data$class == "e"), sum(data$class == "p"))
 B <- c("Edible", "Poisonous")
 
 barplot(A,
@@ -187,13 +199,20 @@ barplot(A,
 
 plot_unique_frequency <- function(data) {
   for (col in names(data)) {
-    if (class(data[[col]]) %in% c("character", "factor") && length(unique(data[[col]])) > 0) {
+    if (
+      class(data[[col]]) %in% c("character", "factor") 
+      && length(unique(data[[col]])) > 0
+    ) {
       unique_counts <- as.data.frame(table(data[[col]]))
 
       # Plotting bar plot for each attribute
       p <- ggplot(unique_counts, aes(x = Var1, y = Freq)) +
         geom_bar(stat = "identity", fill = "skyblue") +
-        labs(title = paste("Frequency of Unique Values for", col), x = col, y = "Frequency") +
+        labs(
+          title = paste("Frequency of Unique Values for", col),
+          x = col,
+          y = "Frequency"
+        ) +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
@@ -202,15 +221,15 @@ plot_unique_frequency <- function(data) {
   }
 }
 
-plot_unique_frequency(data_set)
+plot_unique_frequency(data)
 
 
-# Our data_set is moderately balanced
+# Our data is moderately balanced
 
 # Lets us try finding the major habitats of poisonous mushrooms and edible mushrooms
 #-----------------------------------------------------------------------------------
 
-df_grp_region <- data_set %>%
+df_grp_region <- data %>%
   group_by(habitat) %>%
   summarise(
     poisonous_frequency = sum(class == "p"),
@@ -248,7 +267,7 @@ ggplot(df_grp_region_long, aes(x = habitat, y = Frequency, fill = Class)) +
 #----------------------------------------------------------------------
 
 
-df_grp_population <- data_set %>%
+df_grp_population <- data %>%
   group_by(population) %>%
   summarise(
     poisonous_frequency = sum(class == "p"),
@@ -278,13 +297,13 @@ ggplot(df_grp_population_long, aes(x = population, y = Frequency, fill = Class))
 #-------------------------------------------------------------------
 
 
-# columns <- names(data_set)
+# columns <- names(data)
 
 # for (i in 1:length(columns)) {
 #   for (j in 1:length(columns)) {
-#     if (is.factor(data_set[[columns[i]]]) && is.factor(data_set[[columns[j]]])) {
+#     if (is.factor(data[[columns[i]]]) && is.factor(data[[columns[j]]])) {
 #       if (i != j) {  # Exclude cases when i equals j
-#         cross_table <- table(data_set[[columns[i]]], data_set[[columns[j]]])
+#         cross_table <- table(data[[columns[i]]], data[[columns[j]]])
 #         if (sum(cross_table) > 0) {  # Ensure there is data in the contingency table
 #           if (sum(dim(cross_table) > 1) == 2) {  # Check if the table has at least two dimensions
 #             result <- chisq.test(cross_table)
