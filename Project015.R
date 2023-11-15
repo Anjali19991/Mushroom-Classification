@@ -8,7 +8,7 @@ library(corrplot)
 library(igraph)
 
 # Load the data
-data <- read.csv("/Users/bbp29/OneDrive/Desktop/M2023/IDA/Project/mushrooms.csv")
+data <- read.csv("mushrooms.csv")
 
 # Data Pre-processing
 #-------------------------------------------------------------------------------
